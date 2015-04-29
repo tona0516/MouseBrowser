@@ -33,11 +33,10 @@ public class MainActivity extends Activity {
 	private RelativeLayout mLayout;
 	private ImageView ivMouseCursor;
 	private Button btnClick, btnLongClick, btnDoubleClick, btnEnable;
-	private static  final String HOME = "https://www.google.co.jp/";
-	private String mStateUrl;
-	private int mStateX,mStateY;
+	private static final String HOME = "https://www.google.co.jp/";
 	private final int WC = ViewGroup.LayoutParams.WRAP_CONTENT;
 	private boolean isCursorEnabled = false;
+	private boolean isScrollMode = false;
 
 	private SharedPreferences pref;
 	private Cursor cursor;
@@ -52,14 +51,6 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		pref = PreferenceManager.getDefaultSharedPreferences(this);
 		mLayout = (RelativeLayout) findViewById(R.id.root_layout);
-		
-		if(savedInstanceState !=null){
-			mStateUrl = savedInstanceState.getString("url");
-			mStateX = savedInstanceState.getInt("x",0);
-			mStateY = savedInstanceState.getInt("y",0);
-			mWebView.loadUrl(mStateUrl);
-			mWebView.scrollTo(mStateX, mStateY);
-		}else{
 		mWebView = (WebView) findViewById(R.id.webview);
 		mWebView.getSettings().setUserAgentString("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.52 Safari/537.36");
 		mWebView.getSettings().setUseWideViewPort(true);
@@ -81,7 +72,6 @@ public class MainActivity extends Activity {
 			}
 		});
 		mWebView.loadUrl(HOME);
-		}
 
 		btnClick = (Button) findViewById(R.id.btn_click);
 		btnClick.setOnClickListener(new OnClickListener() {
@@ -171,21 +161,32 @@ public class MainActivity extends Activity {
 	class myOnSetTouchListener implements View.OnTouchListener {
 		@Override
 		public boolean onTouch(View view, MotionEvent event) {
+			
 			switch (event.getAction()) {
 				case MotionEvent.ACTION_DOWN :
+					float x = event.getX();
+					float w = mLayout.getWidth();
+					Log.d("xw", x+","+w);
+					if ((x > 0 && x < w / 4) || (x > w * 3 / 4 && x < w)) {
+						Log.d("sm!", "sm");
+						isScrollMode = true;
+						return false;
+					}
 					downX = event.getX();
 					downY = event.getY();
 					cursorX = cursor.getX();
 					cursorY = cursor.getY();
 					break;
 				case MotionEvent.ACTION_MOVE :
+					Log.d("mode", ""+isScrollMode);
+					if (isScrollMode)
+						return false;
 					float newX = (cursorX - (downX - event.getX()) * cursor.getV());
 					float newY = (cursorY - (downY - event.getY()) * cursor.getV());
 					cursor.setX(newX);
 					cursor.setY(newY);
 					ivMouseCursor.setX(newX);
 					ivMouseCursor.setY(newY);
-
 					if (newX > mLayout.getWidth()) {
 						cursor.setX(mLayout.getWidth());
 						ivMouseCursor.setX(mLayout.getWidth());
@@ -210,14 +211,14 @@ public class MainActivity extends Activity {
 						cursorY = 0;
 						downY = event.getY();
 					}
-
+					//Log.d("position", (int) ivMouseCursor.getX() + "," + (int) ivMouseCursor.getY());
 					break;
 				case MotionEvent.ACTION_UP :
-					break;
+					isScrollMode = false;
+					return false;
 				default :
 					break;
 			}
-			Log.d("position", (int) ivMouseCursor.getX() + "," + (int) ivMouseCursor.getY());
 			return true;
 		}
 	}
@@ -273,12 +274,5 @@ public class MainActivity extends Activity {
 		else
 			ivMouseCursor.setVisibility(View.INVISIBLE);
 		mLayout.addView(ivMouseCursor);
-	}
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		outState.putString("url", mWebView.getUrl());
-		outState.putInt("x", mWebView.getScrollX());
-		outState.putInt("y", mWebView.getScrollY());
 	}
 }
