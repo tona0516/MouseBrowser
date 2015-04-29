@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <ListPreference
+        android:dialogTitle="変更"
+        android:entries="@array/entries"
+        android:entryValues="@array/entry_values"
+        android:key="size_rate"
+        android:summary="カーソルの大きさを変更します"
+        android:title="カーソル倍率" />
+
+    <ListPreference
+        android:dialogTitle="変更"
+        android:entries="@array/entries"
+        android:entryValues="@array/entry_values"
+        android:key="velocity"
+        android:summary="カーソルの移動速度を変更します"
+        android:title="カーソル速度" />
+
+</PreferenceScreen>
