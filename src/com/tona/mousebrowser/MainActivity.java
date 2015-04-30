@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -23,15 +22,18 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ToggleButton;
 
 public class MainActivity extends Activity {
 
+	private ProgressBar mProgressBar;
 	private WebView mWebView;
 	private RelativeLayout mLayout;
 	private ImageView ivMouseCursor;
@@ -49,44 +51,35 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		// requestWindowFeature(Window.FEATURE_NO_TITLE);
-		// ページ読み込み中にぐるぐる回す
-		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_main);
 		pref = PreferenceManager.getDefaultSharedPreferences(this);
 		mLayout = (RelativeLayout) findViewById(R.id.root_layout);
 
+		mProgressBar = (ProgressBar) findViewById(R.id.progress_bar);
+
 		mWebView = (WebView) findViewById(R.id.webview);
-		mWebView.setWebViewClient(new WebViewClient() {
+		mWebView.setWebViewClient(new WebViewClient());
+		mWebView.setWebChromeClient(new WebChromeClient() {
 			@Override
-			public void onPageFinished(WebView view, String url) {
-				super.onPageFinished(view, url);
-				// プロセスバーの表示終了
-				setProgressBarIndeterminateVisibility(false);
-			}
-
-			// ページの読み込み時に呼ばれる
-			@Override
-			public void onPageStarted(WebView view, String url, Bitmap favicon) {
-				super.onPageStarted(view, url, favicon);
-				// プロセスバーの表示開始
-				setProgressBarIndeterminateVisibility(true);
+			public void onProgressChanged(WebView view, int newProgress) {
+				// TODO 自動生成されたメソッド・スタブ
+				super.onProgressChanged(view, newProgress);
+				mProgressBar.setVisibility(View.VISIBLE);
+				mProgressBar.setProgress(newProgress);
+				if (newProgress == 100) {
+					mProgressBar.setProgress(0);
+					mProgressBar.setVisibility(View.INVISIBLE);
+				}
 			}
 		});
-		mWebView.loadUrl(HOME);
-
-		btnClick = (Button) findViewById(R.id.btn_click);
-		btnClick.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mWebView.setOnTouchListener(null);
-				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, cursor.getX(), cursor.getY(), 0);
-				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, cursor.getX(), cursor.getY(), 0);
-				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				mWebView.setOnTouchListener(new myOnSetTouchListener());
-			}
-		});
+		Intent intent = getIntent();
+		String url = intent.getStringExtra("url");
+		if (url != null) {
+			mWebView.loadUrl(url);
+		} else {
+			mWebView.loadUrl(HOME);
+		}
 
 		btnEnable = (ToggleButton) findViewById(R.id.btn_enable);
 		btnEnable.setOnClickListener(new OnClickListener() {
@@ -113,6 +106,19 @@ public class MainActivity extends Activity {
 				}
 			}
 		});
+
+		btnClick = (Button) findViewById(R.id.btn_click);
+		btnClick.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mWebView.setOnTouchListener(null);
+				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, cursor.getX(), cursor.getY(), 0);
+				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
+				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, cursor.getX(), cursor.getY(), 0);
+				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
+				mWebView.setOnTouchListener(new myOnSetTouchListener());
+			}
+		});
 	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -126,6 +132,8 @@ public class MainActivity extends Activity {
 		if (id == R.id.settings) {
 			startActivity(new Intent(getApplicationContext(), Pref.class));
 			return true;
+		} else if (id == R.id.bookmarks) {
+			startActivity(new Intent(getApplicationContext(), Bookmarks.class));
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -225,14 +233,12 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		Log.d("LifeCycle", "onResume");
-		if (cursor == null) {
-			WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-			Display disp = wm.getDefaultDisplay();
-			Point size = new Point();
-			disp.getSize(size);
-			Log.d("size", size.x + "," + size.y);
-			cursor = new Cursor(size.x, size.y);
-		}
+		WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+		Display disp = wm.getDefaultDisplay();
+		Point size = new Point();
+		disp.getSize(size);
+		Log.d("size", size.x + "," + size.y);
+		cursor = new Cursor(size.x, size.y);
 		cursor.setV(Float.parseFloat(pref.getString("velocity", "1.0")));
 		cursor.setSizeRate(Float.parseFloat(pref.getString("size_rate", "1.0")));
 		cursor.setOperationrange(pref.getString("range", "right"));
@@ -251,7 +257,7 @@ public class MainActivity extends Activity {
 		Bitmap bmp2 = Bitmap.createScaledBitmap(bmp, (int) cursor.getWidth(), (int) cursor.getHeight(), false); // 13:16で調整
 		ivMouseCursor.setImageBitmap(bmp2);
 		ivMouseCursor.setLayoutParams(new LayoutParams(WC, WC));
-		ivMouseCursor.setBackgroundColor(Color.RED);
+		// ivMouseCursor.setBackgroundColor(Color.RED);
 		ivMouseCursor.setX(cursor.getX());
 		ivMouseCursor.setY(cursor.getY());
 		if (isCursorEnabled)
