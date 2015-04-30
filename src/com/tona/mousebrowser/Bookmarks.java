@@ -77,7 +77,7 @@ public class Bookmarks extends ListActivity {
 		/* 現在のActivityのContentResolverを得る */
 		ContentResolver p = this.getContentResolver();
 		/* URL、タイトルのリストを得る */
-		android.database.Cursor cursor = p.query(Browser.BOOKMARKS_URI, new String[]{Browser.BookmarkColumns.URL, Browser.BookmarkColumns.TITLE}, "bookmark= 1", null, null);
+		android.database.Cursor cursor = p.query(Browser.BOOKMARKS_URI, new String[]{Browser.BookmarkColumns.URL, Browser.BookmarkColumns.TITLE}, "bookmark= 1", null, Browser.BookmarkColumns.TITLE+" ASC");
 
 		/* URLの位置 */
 		final int urlIndex = cursor.getColumnIndex(Browser.BookmarkColumns.URL);
