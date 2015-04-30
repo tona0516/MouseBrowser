@@ -53,13 +53,13 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		pref = PreferenceManager.getDefaultSharedPreferences(this);
 		mLayout = (RelativeLayout) findViewById(R.id.root_layout);
-		
+
 		clickPoint = new ImageView(this);
 		clickPoint.setImageResource(R.drawable.ic_launcher);
 		clickPoint.setVisibility(View.INVISIBLE);
-		
+
 		mWebView = (WebView) findViewById(R.id.webview);
-		//mWebView.getSettings().setUserAgentString("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.52 Safari/537.36");
+		// mWebView.getSettings().setUserAgentString("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.52 Safari/537.36");
 		mWebView.getSettings().setUseWideViewPort(true);
 		mWebView.getSettings().setLoadWithOverviewMode(true);
 		mWebView.setWebViewClient(new WebViewClient() {
@@ -148,16 +148,12 @@ public class MainActivity extends Activity {
 	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
 		if (id == R.id.settings) {
 			startActivity(new Intent(getApplicationContext(), Pref.class));
@@ -173,7 +169,7 @@ public class MainActivity extends Activity {
 			switch (event.getAction()) {
 				case MotionEvent.ACTION_DOWN :
 					float x = event.getX();
-					float w = mLayout.getWidth();
+					float w = cursor.getDisplaySize().x;
 					// Log.d("xw", x+","+w);
 					if ((x > 0 && x < w / 4) || (x > w * 3 / 4 && x < w)) {
 						Log.d("sm!", "sm");
@@ -195,10 +191,12 @@ public class MainActivity extends Activity {
 					cursor.setY(newY);
 					ivMouseCursor.setX(newX);
 					ivMouseCursor.setY(newY);
-					if (newX > mLayout.getWidth()) {
-						cursor.setX(mLayout.getWidth());
-						ivMouseCursor.setX(mLayout.getWidth());
-						cursorX = mLayout.getWidth();
+					int disX = cursor.getDisplaySize().x;
+					int disY = cursor.getDisplaySize().y;
+					if (newX > cursor.getDisplaySize().x) {
+						cursor.setX(disX);
+						ivMouseCursor.setX(disX);
+						cursorX = disX;
 						downX = event.getX();
 					}
 					if (newX < 0) {
@@ -207,10 +205,10 @@ public class MainActivity extends Activity {
 						cursorX = 0;
 						downX = event.getX();
 					}
-					if (newY > mLayout.getHeight()) {
-						cursor.setY(mLayout.getHeight());
-						ivMouseCursor.setY(mLayout.getHeight());
-						cursorY = mLayout.getHeight();
+					if (newY > disY) {
+						cursor.setY(disY);
+						ivMouseCursor.setY(disY);
+						cursorY = disY;
 						downY = event.getY();
 					}
 					if (newY < 0) {
