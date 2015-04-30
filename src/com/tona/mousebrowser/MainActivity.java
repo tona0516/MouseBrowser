@@ -41,8 +41,7 @@ public class MainActivity extends Activity {
 
 	private SharedPreferences pref;
 	private Cursor cursor;
-	private float downX, downY, cursorX, cursorY;
-	ImageView clickPoint;
+	private float downX, downY;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -53,10 +52,6 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		pref = PreferenceManager.getDefaultSharedPreferences(this);
 		mLayout = (RelativeLayout) findViewById(R.id.root_layout);
-
-		clickPoint = new ImageView(this);
-		clickPoint.setImageResource(R.drawable.ic_launcher);
-		clickPoint.setVisibility(View.INVISIBLE);
 
 		mWebView = (WebView) findViewById(R.id.webview);
 		// mWebView.getSettings().setUserAgentString("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.52 Safari/537.36");
@@ -84,11 +79,10 @@ public class MainActivity extends Activity {
 		btnClick.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Log.d("comoare", "(" + cursor.getX() + "," + cursor.getY() + "),(" + ivMouseCursor.getX() + "," + ivMouseCursor.getY() + ")");
 				mWebView.setOnTouchListener(null);
-				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, ivMouseCursor.getX(), ivMouseCursor.getY(), 0);
+				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, cursor.getX(), cursor.getY(), 0);
 				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, ivMouseCursor.getX(), ivMouseCursor.getY(), 0);
+				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, cursor.getX(), cursor.getY(), 0);
 				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
 				mWebView.setOnTouchListener(new myOnSetTouchListener());
 			}
@@ -99,7 +93,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				mWebView.setOnTouchListener(null);
-				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 1000, MotionEvent.ACTION_DOWN, ivMouseCursor.getX(), ivMouseCursor.getY(), 0);
+				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 1000, MotionEvent.ACTION_DOWN, cursor.getX(), cursor.getY(), 0);
 				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
 				mWebView.setOnTouchListener(new myOnSetTouchListener());
 			}
@@ -110,13 +104,13 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				mWebView.setOnTouchListener(null);
-				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, ivMouseCursor.getX(), ivMouseCursor.getY(), 0);
+				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, cursor.getX(), cursor.getY(), 0);
 				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, ivMouseCursor.getX(), ivMouseCursor.getY(), 0);
+				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, cursor.getX(), cursor.getY(), 0);
 				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, ivMouseCursor.getX(), ivMouseCursor.getY(), 0);
+				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, cursor.getX(), cursor.getY(), 0);
 				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, ivMouseCursor.getX(), ivMouseCursor.getY(), 0);
+				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, cursor.getX(), cursor.getY(), 0);
 				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
 				mWebView.setOnTouchListener(new myOnSetTouchListener());
 			}
@@ -178,15 +172,15 @@ public class MainActivity extends Activity {
 					}
 					downX = event.getX();
 					downY = event.getY();
-					cursorX = cursor.getX();
-					cursorY = cursor.getY();
+					cursor.setDownX(cursor.getX());
+					cursor.setDownY(cursor.getY());
 					break;
 				case MotionEvent.ACTION_MOVE :
 					Log.d("mode", "" + isScrollMode);
 					if (isScrollMode)
 						return false;
-					float newX = (cursorX - (downX - event.getX()) * cursor.getV());
-					float newY = (cursorY - (downY - event.getY()) * cursor.getV());
+					float newX = (cursor.getDownX() - (downX - event.getX()) * cursor.getV());
+					float newY = (cursor.getDownY() - (downY - event.getY()) * cursor.getV());
 					cursor.setX(newX);
 					cursor.setY(newY);
 					ivMouseCursor.setX(newX);
@@ -196,29 +190,27 @@ public class MainActivity extends Activity {
 					if (newX > cursor.getDisplaySize().x) {
 						cursor.setX(disX);
 						ivMouseCursor.setX(disX);
-						cursorX = disX;
+						cursor.setDownX(disX);
 						downX = event.getX();
 					}
 					if (newX < 0) {
 						cursor.setX(0);
 						ivMouseCursor.setX(0);
-						cursorX = 0;
+						cursor.setDownX(0);
 						downX = event.getX();
 					}
 					if (newY > disY) {
 						cursor.setY(disY);
 						ivMouseCursor.setY(disY);
-						cursorY = disY;
+						cursor.setDownY(disY);
 						downY = event.getY();
 					}
 					if (newY < 0) {
 						cursor.setY(0);
 						ivMouseCursor.setY(0);
-						cursorY = 0;
+						cursor.setDownY(0);
 						downY = event.getY();
 					}
-					// Log.d("position", (int) ivMouseCursor.getX() + "," +
-					// (int) ivMouseCursor.getY());
 					break;
 				case MotionEvent.ACTION_UP :
 					isScrollMode = false;

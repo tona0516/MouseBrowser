@@ -4,6 +4,7 @@ import android.graphics.Point;
 
 public class Cursor {
 	private float x, y;
+	private float downX,downY;
 	private float v;
 	private float sizeRate;
 	private float width, height;
@@ -64,5 +65,17 @@ public class Cursor {
 	}
 	public void setDisplaySize(Point displaySize) {
 		this.displaySize = displaySize;
+	}
+	public float getDownX() {
+		return downX;
+	}
+	public void setDownX(float downX) {
+		this.downX = downX;
+	}
+	public float getDownY() {
+		return downY;
+	}
+	public void setDownY(float downY) {
+		this.downY = downY;
 	}
 }
