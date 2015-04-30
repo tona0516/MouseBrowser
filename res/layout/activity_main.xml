@@ -21,31 +21,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:enabled="false"
+            android:visibility="invisible"
             android:text="click" />
-
-        <Button
-            android:id="@+id/btn_longclick"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:enabled="false"
-            android:text="l click" />
-
-        <Button
-            android:id="@+id/btn_doubleclick"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:enabled="false"
-            android:text="d click" />
 
         <Button
             android:id="@+id/btn_enable"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="enable" />
+            android:text="OFF" />
     </LinearLayout>
 
 </RelativeLayout>

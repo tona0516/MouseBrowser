@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -33,7 +34,7 @@ public class MainActivity extends Activity {
 	private WebView mWebView;
 	private RelativeLayout mLayout;
 	private ImageView ivMouseCursor;
-	private Button btnClick, btnLongClick, btnDoubleClick, btnEnable;
+	private Button btnClick, btnEnable;
 	private static final String HOME = "https://www.google.co.jp/";
 	private final int WC = ViewGroup.LayoutParams.WRAP_CONTENT;
 	private boolean isCursorEnabled = false;
@@ -54,9 +55,6 @@ public class MainActivity extends Activity {
 		mLayout = (RelativeLayout) findViewById(R.id.root_layout);
 
 		mWebView = (WebView) findViewById(R.id.webview);
-		// mWebView.getSettings().setUserAgentString("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.52 Safari/537.36");
-		mWebView.getSettings().setUseWideViewPort(true);
-		mWebView.getSettings().setLoadWithOverviewMode(true);
 		mWebView.setWebViewClient(new WebViewClient() {
 			@Override
 			public void onPageFinished(WebView view, String url) {
@@ -88,54 +86,30 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		btnLongClick = (Button) findViewById(R.id.btn_longclick);
-		btnLongClick.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mWebView.setOnTouchListener(null);
-				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 1000, MotionEvent.ACTION_DOWN, cursor.getX(), cursor.getY(), 0);
-				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				mWebView.setOnTouchListener(new myOnSetTouchListener());
-			}
-		});
-
-		btnDoubleClick = (Button) findViewById(R.id.btn_doubleclick);
-		btnDoubleClick.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mWebView.setOnTouchListener(null);
-				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, cursor.getX(), cursor.getY(), 0);
-				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, cursor.getX(), cursor.getY(), 0);
-				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, cursor.getX(), cursor.getY(), 0);
-				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, cursor.getX(), cursor.getY(), 0);
-				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				mWebView.setOnTouchListener(new myOnSetTouchListener());
-			}
-		});
-
 		btnEnable = (Button) findViewById(R.id.btn_enable);
 		btnEnable.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				if (!isCursorEnabled) {
+					btnClick.setVisibility(View.VISIBLE);
+					AlphaAnimation aa1 = new AlphaAnimation(0, 1);
+					aa1.setDuration(500);
+					btnClick.setAnimation(aa1);
 					mWebView.setOnTouchListener(new myOnSetTouchListener());
 					isCursorEnabled = true;
-					btnEnable.setText("disable");
-					btnClick.setEnabled(true);
-					btnLongClick.setEnabled(true);
-					btnDoubleClick.setEnabled(true);
+					btnEnable.setText("ON");
+					btnEnable.setBackgroundColor(Color.YELLOW);
 					createCursorImage();
 				} else {
+					btnClick.setVisibility(View.INVISIBLE);
+					AlphaAnimation aa2 = new AlphaAnimation(1, 0);
+					aa2.setDuration(500);
+					btnClick.setAnimation(aa2);
 					mWebView.setOnTouchListener(null);
 					isCursorEnabled = false;
 					mLayout.removeView(ivMouseCursor);
-					btnEnable.setText("enable");
-					btnClick.setEnabled(false);
-					btnLongClick.setEnabled(false);
-					btnDoubleClick.setEnabled(false);
+					btnEnable.setText("OFF");
+					btnEnable.setBackgroundColor(Color.WHITE);
 				}
 			}
 		});
@@ -165,8 +139,7 @@ public class MainActivity extends Activity {
 					float x = event.getX();
 					float w = cursor.getDisplaySize().x;
 					// Log.d("xw", x+","+w);
-					if ((x > 0 && x < w / 4) || (x > w * 3 / 4 && x < w)) {
-						Log.d("sm!", "sm");
+					if (!isRange(x)) {
 						isScrollMode = true;
 						return false;
 					}
@@ -176,7 +149,6 @@ public class MainActivity extends Activity {
 					cursor.setDownY(cursor.getY());
 					break;
 				case MotionEvent.ACTION_MOVE :
-					Log.d("mode", "" + isScrollMode);
 					if (isScrollMode)
 						return false;
 					float newX = (cursor.getDownX() - (downX - event.getX()) * cursor.getV());
@@ -220,6 +192,20 @@ public class MainActivity extends Activity {
 			}
 			return true;
 		}
+
+		private boolean isRange(float x) {
+			if (cursor.getOperationrange().equals("right")) {
+				if (x > cursor.getDisplaySize().x / 2 && x < cursor.getDisplaySize().x) {
+					return true;
+				}
+			}
+			if (cursor.getOperationrange().equals("left")) {
+				if (x > 0 && x < cursor.getDisplaySize().x / 2) {
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 
 	@Override
@@ -249,7 +235,7 @@ public class MainActivity extends Activity {
 		}
 		cursor.setV(Float.parseFloat(pref.getString("velocity", "1.0")));
 		cursor.setSizeRate(Float.parseFloat(pref.getString("size_rate", "1.0")));
-
+		cursor.setOperationrange(pref.getString("range", "right"));
 		createCursorImage();
 	}
 

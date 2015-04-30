@@ -19,5 +19,13 @@
         <item>1.75</item>
         <item>2.0</item>
     </string-array>
+    <string-array name="scroll_option">
+        <item>右半分(デフォルト)</item>
+        <item>左半分</item>
+    </string-array>
+    <string-array name="scroll_string">
+        <item>right</item>
+        <item>left</item>
+    </string-array>
 
 </resources>

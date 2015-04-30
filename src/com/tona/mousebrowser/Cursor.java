@@ -11,7 +11,7 @@ public class Cursor {
 	private Point displaySize;
 	public static final float defalutWidth = 39, defaultHeight = 48;
 	public static float defaultX, defaultY;
-
+	private String Operationrange;
 	public Cursor(int displayWidth, int displayHeight) {
 		setDisplaySize(new Point(displayWidth, displayHeight));
 		defaultX = displayWidth / 2;
@@ -77,5 +77,11 @@ public class Cursor {
 	}
 	public void setDownY(float downY) {
 		this.downY = downY;
+	}
+	public String getOperationrange() {
+		return Operationrange;
+	}
+	public void setOperationrange(String operationrange) {
+		Operationrange = operationrange;
 	}
 }

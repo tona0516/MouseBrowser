@@ -17,4 +17,12 @@
         android:summary="カーソルの移動速度を変更します"
         android:title="カーソル速度" />
 
+    <ListPreference
+        android:dialogTitle="変更"
+        android:entries="@array/scroll_option"
+        android:entryValues="@array/scroll_string"
+        android:key="range"
+        android:summary="カーソル操作ができる範囲を設定します。"
+        android:title="カーソル操作領域" />
+
 </PreferenceScreen>
