@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -41,6 +42,7 @@ public class MainActivity extends Activity {
 	private SharedPreferences pref;
 	private Cursor cursor;
 	private float downX, downY, cursorX, cursorY;
+	ImageView clickPoint;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +53,13 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		pref = PreferenceManager.getDefaultSharedPreferences(this);
 		mLayout = (RelativeLayout) findViewById(R.id.root_layout);
+		
+		clickPoint = new ImageView(this);
+		clickPoint.setImageResource(R.drawable.ic_launcher);
+		clickPoint.setVisibility(View.INVISIBLE);
+		
 		mWebView = (WebView) findViewById(R.id.webview);
-		mWebView.getSettings().setUserAgentString("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.52 Safari/537.36");
+		//mWebView.getSettings().setUserAgentString("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.52 Safari/537.36");
 		mWebView.getSettings().setUseWideViewPort(true);
 		mWebView.getSettings().setLoadWithOverviewMode(true);
 		mWebView.setWebViewClient(new WebViewClient() {
@@ -77,6 +84,7 @@ public class MainActivity extends Activity {
 		btnClick.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				Log.d("comoare", "(" + cursor.getX() + "," + cursor.getY() + "),(" + ivMouseCursor.getX() + "," + ivMouseCursor.getY() + ")");
 				mWebView.setOnTouchListener(null);
 				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, ivMouseCursor.getX(), ivMouseCursor.getY(), 0);
 				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
@@ -161,12 +169,12 @@ public class MainActivity extends Activity {
 	class myOnSetTouchListener implements View.OnTouchListener {
 		@Override
 		public boolean onTouch(View view, MotionEvent event) {
-			
+
 			switch (event.getAction()) {
 				case MotionEvent.ACTION_DOWN :
 					float x = event.getX();
 					float w = mLayout.getWidth();
-					Log.d("xw", x+","+w);
+					// Log.d("xw", x+","+w);
 					if ((x > 0 && x < w / 4) || (x > w * 3 / 4 && x < w)) {
 						Log.d("sm!", "sm");
 						isScrollMode = true;
@@ -178,7 +186,7 @@ public class MainActivity extends Activity {
 					cursorY = cursor.getY();
 					break;
 				case MotionEvent.ACTION_MOVE :
-					Log.d("mode", ""+isScrollMode);
+					Log.d("mode", "" + isScrollMode);
 					if (isScrollMode)
 						return false;
 					float newX = (cursorX - (downX - event.getX()) * cursor.getV());
@@ -211,7 +219,8 @@ public class MainActivity extends Activity {
 						cursorY = 0;
 						downY = event.getY();
 					}
-					//Log.d("position", (int) ivMouseCursor.getX() + "," + (int) ivMouseCursor.getY());
+					// Log.d("position", (int) ivMouseCursor.getX() + "," +
+					// (int) ivMouseCursor.getY());
 					break;
 				case MotionEvent.ACTION_UP :
 					isScrollMode = false;
@@ -266,7 +275,7 @@ public class MainActivity extends Activity {
 		Bitmap bmp2 = Bitmap.createScaledBitmap(bmp, (int) cursor.getWidth(), (int) cursor.getHeight(), false); // 13:16で調整
 		ivMouseCursor.setImageBitmap(bmp2);
 		ivMouseCursor.setLayoutParams(new LayoutParams(WC, WC));
-		// ivMouseCursor.setBackgroundColor(Color.RED);
+		ivMouseCursor.setBackgroundColor(Color.RED);
 		ivMouseCursor.setX(cursor.getX());
 		ivMouseCursor.setY(cursor.getY());
 		if (isCursorEnabled)
