@@ -21,10 +21,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:visibility="invisible"
-            android:text="click" />
+            android:text="click"
+            android:visibility="invisible" />
 
-        <Button
+        <ToggleButton
             android:id="@+id/btn_enable"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

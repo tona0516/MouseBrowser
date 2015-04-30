@@ -28,13 +28,15 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.ToggleButton;
 
 public class MainActivity extends Activity {
 
 	private WebView mWebView;
 	private RelativeLayout mLayout;
 	private ImageView ivMouseCursor;
-	private Button btnClick, btnEnable;
+	private Button btnClick;
+	private ToggleButton btnEnable;
 	private static final String HOME = "https://www.google.co.jp/";
 	private final int WC = ViewGroup.LayoutParams.WRAP_CONTENT;
 	private boolean isCursorEnabled = false;
@@ -86,7 +88,7 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		btnEnable = (Button) findViewById(R.id.btn_enable);
+		btnEnable = (ToggleButton) findViewById(R.id.btn_enable);
 		btnEnable.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -98,7 +100,6 @@ public class MainActivity extends Activity {
 					mWebView.setOnTouchListener(new myOnSetTouchListener());
 					isCursorEnabled = true;
 					btnEnable.setText("ON");
-					btnEnable.setBackgroundColor(Color.YELLOW);
 					createCursorImage();
 				} else {
 					btnClick.setVisibility(View.INVISIBLE);
@@ -109,7 +110,6 @@ public class MainActivity extends Activity {
 					isCursorEnabled = false;
 					mLayout.removeView(ivMouseCursor);
 					btnEnable.setText("OFF");
-					btnEnable.setBackgroundColor(Color.WHITE);
 				}
 			}
 		});
