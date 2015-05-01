@@ -142,9 +142,9 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				mWebView.setOnTouchListener(null);
-				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, cursor.getX(), cursor.getY(), 0);
+				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, cursor.getX() - ivMouseCursor.getWidth()/2, cursor.getY() - ivMouseCursor.getHeight()/2, 0);
 				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, cursor.getX(), cursor.getY(), 0);
+				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, cursor.getX() - ivMouseCursor.getWidth()/2, cursor.getY() - ivMouseCursor.getHeight()/2, 0);
 				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
 				mWebView.setOnTouchListener(new myOnSetTouchListener());
 			}
@@ -274,7 +274,7 @@ public class MainActivity extends Activity {
 		Point size = new Point();
 		disp.getSize(size);
 		Log.d("size", size.x + "," + size.y);
-		cursor = new Cursor(size.x, size.y, ivMouseCursor);
+		cursor = new Cursor(size.x, size.y);
 		mViewBottom.setY(cursor.getDisplaySize().y * 2 / 3);
 		cursor.setV(Float.parseFloat(pref.getString("velocity", "1.0")));
 		cursor.setSizeRate(Float.parseFloat(pref.getString("size_rate", "1.0")));

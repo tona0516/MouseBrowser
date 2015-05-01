@@ -14,13 +14,12 @@ public class Cursor {
 	public static float defaultX, defaultY;
 	private String operationRange;
 	private ImageView iv;
-	public Cursor(int displayWidth, int displayHeight, ImageView iv) {
+	public Cursor(int displayWidth, int displayHeight) {
 		setDisplaySize(new Point(displayWidth, displayHeight));
 		defaultX = displayWidth / 2;
 		defaultY = displayHeight / 2;
 		x = displayWidth / 2;
 		y = displayHeight / 2;
-		this.iv = iv;
 		setV(1.0f);
 		setWidth(defalutWidth);
 		setHeight(defaultHeight);
@@ -29,13 +28,13 @@ public class Cursor {
 		return x;
 	}
 	public void setX(float x) {
-		this.x = x - iv.getWidth();
+		this.x = x;
 	}
 	public float getY() {
 		return y;
 	}
 	public void setY(float y) {
-		this.y = y - iv.getHeight();
+		this.y = y;
 	}
 	public float getV() {
 		return v;
