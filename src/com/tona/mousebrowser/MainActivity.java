@@ -1,5 +1,6 @@
 package com.tona.mousebrowser;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,6 +24,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -48,6 +50,8 @@ public class MainActivity extends Activity {
 	private Cursor cursor;
 	private float downX, downY;
 
+
+	@SuppressLint("SetJavaScriptEnabled")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -59,6 +63,9 @@ public class MainActivity extends Activity {
 		mProgressBar = (ProgressBar) findViewById(R.id.progress_bar);
 
 		mWebView = (WebView) findViewById(R.id.webview);
+		WebSettings settings = mWebView.getSettings();
+		settings.setJavaScriptEnabled(true);
+
 		mWebView.setWebViewClient(new WebViewClient());
 		mWebView.setWebChromeClient(new WebChromeClient() {
 			@Override
