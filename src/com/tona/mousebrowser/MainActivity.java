@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -29,6 +30,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ToggleButton;
@@ -45,11 +47,13 @@ public class MainActivity extends Activity {
 	private final int WC = ViewGroup.LayoutParams.WRAP_CONTENT;
 	private boolean isCursorEnabled = false;
 	private boolean isScrollMode = false;
+	private boolean isNoShowCorsorRange = false;
 
 	private SharedPreferences pref;
 	private Cursor cursor;
 	private float downX, downY;
 
+	private View mViewLeft, mViewRight;
 
 	@SuppressLint("SetJavaScriptEnabled")
 	@Override
@@ -59,6 +63,8 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		pref = PreferenceManager.getDefaultSharedPreferences(this);
 		mLayout = (RelativeLayout) findViewById(R.id.root_layout);
+		mViewLeft = (View) findViewById(R.id.view_left);
+		mViewRight = (View) findViewById(R.id.view_right);
 
 		mProgressBar = (ProgressBar) findViewById(R.id.progress_bar);
 
@@ -101,6 +107,7 @@ public class MainActivity extends Activity {
 					isCursorEnabled = true;
 					btnEnable.setText("ON");
 					createCursorImage();
+					switchViewCursorRange();
 				} else {
 					btnClick.setVisibility(View.INVISIBLE);
 					AlphaAnimation aa2 = new AlphaAnimation(1, 0);
@@ -108,8 +115,10 @@ public class MainActivity extends Activity {
 					btnClick.setAnimation(aa2);
 					mWebView.setOnTouchListener(null);
 					isCursorEnabled = false;
-					mLayout.removeView(ivMouseCursor);
 					btnEnable.setText("OFF");
+					mLayout.removeView(ivMouseCursor);
+					switchViewCursorRange();
+
 				}
 			}
 		});
@@ -209,12 +218,12 @@ public class MainActivity extends Activity {
 		}
 
 		private boolean isRange(float x) {
-			if (cursor.getOperationrange().equals("right")) {
+			if (cursor.getOperationRange().equals("right")) {
 				if (x > cursor.getDisplaySize().x / 2 && x < cursor.getDisplaySize().x) {
 					return true;
 				}
 			}
-			if (cursor.getOperationrange().equals("left")) {
+			if (cursor.getOperationRange().equals("left")) {
 				if (x > 0 && x < cursor.getDisplaySize().x / 2) {
 					return true;
 				}
@@ -248,7 +257,9 @@ public class MainActivity extends Activity {
 		cursor = new Cursor(size.x, size.y);
 		cursor.setV(Float.parseFloat(pref.getString("velocity", "1.0")));
 		cursor.setSizeRate(Float.parseFloat(pref.getString("size_rate", "1.0")));
-		cursor.setOperationrange(pref.getString("range", "right"));
+		cursor.setOperationRange(pref.getString("range", "right"));
+		isNoShowCorsorRange = pref.getBoolean("view_cursor_range", false);
+		switchViewCursorRange();
 		createCursorImage();
 	}
 
@@ -272,5 +283,21 @@ public class MainActivity extends Activity {
 		else
 			ivMouseCursor.setVisibility(View.INVISIBLE);
 		mLayout.addView(ivMouseCursor);
+	}
+
+	private void switchViewCursorRange() {
+		if (!isNoShowCorsorRange) {
+			if (isCursorEnabled) {
+				Log.d("range", cursor.getOperationRange());
+				if (cursor.getOperationRange().equals("right")) {
+					mViewRight.setVisibility(View.VISIBLE);
+				} else if (cursor.getOperationRange().equals("left")) {
+					mViewLeft.setVisibility(View.VISIBLE);
+				}
+			} else {
+				mViewLeft.setVisibility(View.INVISIBLE);
+				mViewRight.setVisibility(View.INVISIBLE);
+			}
+		}
 	}
 }

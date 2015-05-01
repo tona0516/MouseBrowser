@@ -25,4 +25,11 @@
         android:summary="カーソル操作ができる範囲を設定します。"
         android:title="カーソル操作領域" />
 
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:disableDependentsState="true"
+        android:key="view_cursor_range"
+        android:summary="カーソル操作領域を非可視化にする"
+        android:title="カーソル操作領域表示" />
+
 </PreferenceScreen>
