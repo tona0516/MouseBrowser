@@ -37,38 +37,88 @@ import android.widget.ToggleButton;
 
 public class MainActivity extends Activity {
 
-	private ProgressBar mProgressBar;
+	//component
 	private WebView mWebView;
+	private ProgressBar mProgressBar;
 	private RelativeLayout mLayout;
 	private ImageView ivMouseCursor;
 	private Button btnClick;
 	private ToggleButton btnEnable;
-	private static final String HOME = "https://www.google.co.jp/";
-	private final int WC = ViewGroup.LayoutParams.WRAP_CONTENT;
+	private View mViewLeft, mViewRight, mViewBottom;
+
 	private boolean isCursorEnabled = false;
 	private boolean isScrollMode = false;
-	private boolean isNoShowCorsorRange = false;
+	private boolean isNoShowCursorRange = false;
 
 	private SharedPreferences pref;
 	private Cursor cursor;
 	private float downX, downY;
 
-	private View mViewLeft, mViewRight, mViewBottom;
+	private static final String HOME = "https://www.google.co.jp/";
+	private final int WC = ViewGroup.LayoutParams.WRAP_CONTENT;
 
-	@SuppressLint("SetJavaScriptEnabled")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_main);
 		pref = PreferenceManager.getDefaultSharedPreferences(this);
+		initComponent();
+		initWebView();
+	}
+
+	private void initComponent() {
 		mLayout = (RelativeLayout) findViewById(R.id.root_layout);
 		mViewLeft = (View) findViewById(R.id.view_left);
 		mViewRight = (View) findViewById(R.id.view_right);
 		mViewBottom = (View) findViewById(R.id.view_bottom);
-
 		mProgressBar = (ProgressBar) findViewById(R.id.progress_bar);
+		btnEnable = (ToggleButton) findViewById(R.id.btn_enable);
+		btnClick = (Button) findViewById(R.id.btn_click);
 
+		btnEnable.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (!isCursorEnabled) {
+					btnClick.setVisibility(View.VISIBLE);
+					AlphaAnimation aa1 = new AlphaAnimation(0, 1);
+					aa1.setDuration(500);
+					btnClick.setAnimation(aa1);
+					mWebView.setOnTouchListener(new myOnSetTouchListener());
+					isCursorEnabled = true;
+					btnEnable.setText("ON");
+					createCursorImage();
+					switchViewCursorRange();
+				} else {
+					btnClick.setVisibility(View.INVISIBLE);
+					AlphaAnimation aa2 = new AlphaAnimation(1, 0);
+					aa2.setDuration(500);
+					btnClick.setAnimation(aa2);
+					mWebView.setOnTouchListener(null);
+					isCursorEnabled = false;
+					btnEnable.setText("OFF");
+					mLayout.removeView(ivMouseCursor);
+					switchViewCursorRange();
+
+				}
+			}
+		});
+
+		btnClick.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mWebView.setOnTouchListener(null);
+				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, cursor.getX() - ivMouseCursor.getWidth() / 2, cursor.getY() - ivMouseCursor.getHeight() / 2, 0);
+				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
+				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, cursor.getX() - ivMouseCursor.getWidth() / 2, cursor.getY() - ivMouseCursor.getHeight() / 2, 0);
+				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
+				mWebView.setOnTouchListener(new myOnSetTouchListener());
+			}
+		});
+	}
+
+	@SuppressLint("SetJavaScriptEnabled")
+	private void initWebView() {
 		mWebView = (WebView) findViewById(R.id.webview);
 		WebSettings settings = mWebView.getSettings();
 		settings.setJavaScriptEnabled(true);
@@ -107,48 +157,6 @@ public class MainActivity extends Activity {
 		} else {
 			mWebView.loadUrl(HOME);
 		}
-
-		btnEnable = (ToggleButton) findViewById(R.id.btn_enable);
-		btnEnable.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if (!isCursorEnabled) {
-					btnClick.setVisibility(View.VISIBLE);
-					AlphaAnimation aa1 = new AlphaAnimation(0, 1);
-					aa1.setDuration(500);
-					btnClick.setAnimation(aa1);
-					mWebView.setOnTouchListener(new myOnSetTouchListener());
-					isCursorEnabled = true;
-					btnEnable.setText("ON");
-					createCursorImage();
-					switchViewCursorRange();
-				} else {
-					btnClick.setVisibility(View.INVISIBLE);
-					AlphaAnimation aa2 = new AlphaAnimation(1, 0);
-					aa2.setDuration(500);
-					btnClick.setAnimation(aa2);
-					mWebView.setOnTouchListener(null);
-					isCursorEnabled = false;
-					btnEnable.setText("OFF");
-					mLayout.removeView(ivMouseCursor);
-					switchViewCursorRange();
-
-				}
-			}
-		});
-
-		btnClick = (Button) findViewById(R.id.btn_click);
-		btnClick.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mWebView.setOnTouchListener(null);
-				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, cursor.getX() - ivMouseCursor.getWidth()/2, cursor.getY() - ivMouseCursor.getHeight()/2, 0);
-				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, cursor.getX() - ivMouseCursor.getWidth()/2, cursor.getY() - ivMouseCursor.getHeight()/2, 0);
-				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				mWebView.setOnTouchListener(new myOnSetTouchListener());
-			}
-		});
 	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -176,9 +184,7 @@ public class MainActivity extends Activity {
 				case MotionEvent.ACTION_DOWN :
 					float x = event.getX();
 					float y = event.getY();
-					float w = cursor.getDisplaySize().x;
-					// Log.d("xw", x+","+w);
-					if (!isRange(x, y)) {
+					if (!isCursorOperationRange(x, y)) {
 						isScrollMode = true;
 						return false;
 					}
@@ -231,31 +237,30 @@ public class MainActivity extends Activity {
 			}
 			return true;
 		}
+	}
 
-		private boolean isRange(float x, float y) {
-			if (cursor.getOperationRange().equals("right")) {
-				if (x > cursor.getDisplaySize().x / 2 && x < cursor.getDisplaySize().x) {
-					return true;
-				}
+	private boolean isCursorOperationRange(float x, float y) {
+		if (cursor.getOperationRange().equals("right")) {
+			if (x > cursor.getDisplaySize().x / 2 && x < cursor.getDisplaySize().x) {
+				return true;
 			}
-			if (cursor.getOperationRange().equals("left")) {
-				if (x > 0 && x < cursor.getDisplaySize().x / 2) {
-					return true;
-				}
-			}
-			if (cursor.getOperationRange().equals("bottom")) {
-				if (y > cursor.getDisplaySize().y * 2 / 3 && y < cursor.getDisplaySize().y) {
-					return true;
-				}
-			}
-			return false;
 		}
+		if (cursor.getOperationRange().equals("left")) {
+			if (x > 0 && x < cursor.getDisplaySize().x / 2) {
+				return true;
+			}
+		}
+		if (cursor.getOperationRange().equals("bottom")) {
+			if (y > cursor.getDisplaySize().y * 2 / 3 && y < cursor.getDisplaySize().y) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) { // バックボタンが押されたら、前のページに戻る
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			// oWebview.goBack();
 			if (mWebView.canGoBack())
 				mWebView.goBack();
 			else
@@ -269,19 +274,28 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		Log.d("LifeCycle", "onResume");
+		Point p = getWindowSize();
+		cursor = new Cursor(p.x, p.y);
+		mViewBottom.setY(cursor.getDisplaySize().y * 2 / 3);
+		readPreference();
+		switchViewCursorRange();
+		createCursorImage();
+	}
+
+	private Point getWindowSize() {
 		WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
 		Display disp = wm.getDefaultDisplay();
 		Point size = new Point();
 		disp.getSize(size);
 		Log.d("size", size.x + "," + size.y);
-		cursor = new Cursor(size.x, size.y);
-		mViewBottom.setY(cursor.getDisplaySize().y * 2 / 3);
+		return size;
+	}
+
+	private void readPreference() {
 		cursor.setV(Float.parseFloat(pref.getString("velocity", "1.0")));
 		cursor.setSizeRate(Float.parseFloat(pref.getString("size_rate", "1.0")));
 		cursor.setOperationRange(pref.getString("range", "right"));
-		isNoShowCorsorRange = pref.getBoolean("view_cursor_range", false);
-		switchViewCursorRange();
-		createCursorImage();
+		isNoShowCursorRange = pref.getBoolean("view_cursor_range", false);
 	}
 
 	@Override
@@ -307,7 +321,7 @@ public class MainActivity extends Activity {
 	}
 
 	private void switchViewCursorRange() {
-		if (isCursorEnabled && !isNoShowCorsorRange) {
+		if (isCursorEnabled && !isNoShowCursorRange) {
 			Log.d("range", cursor.getOperationRange());
 			if (cursor.getOperationRange().equals("right")) {
 				mViewRight.setVisibility(View.VISIBLE);
