@@ -108,9 +108,9 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				mWebView.setOnTouchListener(null);
-				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, cursor.getX() - ivMouseCursor.getWidth() / 2, cursor.getY() - ivMouseCursor.getHeight() / 2, 0);
+				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, cursor.getX(), cursor.getY(), 0);
 				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, cursor.getX() - ivMouseCursor.getWidth() / 2, cursor.getY() - ivMouseCursor.getHeight() / 2, 0);
+				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, cursor.getX(), cursor.getY(), 0);
 				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
 				mWebView.setOnTouchListener(new myOnSetTouchListener());
 			}
@@ -228,6 +228,13 @@ public class MainActivity extends Activity {
 						cursor.setDownY(0);
 						downY = event.getY();
 					}
+					int[] l = new int[2];
+					int[] k = new int[2];
+					// ivMouseCursor.getLocationOnScreen(l);
+					// ivMouseCursor.getLocationInWindow(k);
+					// Log.d("point", "(" + ivMouseCursor.getX() + "," +
+					// ivMouseCursor.getY() + "),(" + l[0] + "," + l[1] + "),("
+					// + k[0] + "," + k[1] + ")");
 					break;
 				case MotionEvent.ACTION_UP :
 					isScrollMode = false;
