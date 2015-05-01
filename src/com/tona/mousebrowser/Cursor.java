@@ -1,6 +1,7 @@
 package com.tona.mousebrowser;
 
 import android.graphics.Point;
+import android.widget.ImageView;
 
 public class Cursor {
 	private float x, y;
@@ -12,12 +13,14 @@ public class Cursor {
 	public static final float defalutWidth = 39, defaultHeight = 48;
 	public static float defaultX, defaultY;
 	private String operationRange;
-	public Cursor(int displayWidth, int displayHeight) {
+	private ImageView iv;
+	public Cursor(int displayWidth, int displayHeight, ImageView iv) {
 		setDisplaySize(new Point(displayWidth, displayHeight));
 		defaultX = displayWidth / 2;
 		defaultY = displayHeight / 2;
 		x = displayWidth / 2;
 		y = displayHeight / 2;
+		this.iv = iv;
 		setV(1.0f);
 		setWidth(defalutWidth);
 		setHeight(defaultHeight);
@@ -26,13 +29,13 @@ public class Cursor {
 		return x;
 	}
 	public void setX(float x) {
-		this.x = x;
+		this.x = x - iv.getWidth();
 	}
 	public float getY() {
 		return y;
 	}
 	public void setY(float y) {
-		this.y = y;
+		this.y = y - iv.getHeight();
 	}
 	public float getV() {
 		return v;

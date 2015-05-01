@@ -1,5 +1,7 @@
 package com.tona.mousebrowser;
 
+import java.lang.reflect.Field;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
@@ -70,6 +72,19 @@ public class MainActivity extends Activity {
 		mWebView = (WebView) findViewById(R.id.webview);
 		WebSettings settings = mWebView.getSettings();
 		settings.setJavaScriptEnabled(true);
+		settings.setUseWideViewPort(true);
+
+		// マルチタッチズームの有効
+		settings.setBuiltInZoomControls(true);
+		settings.setSupportZoom(true);
+		try {
+			Field mWebViewField = settings.getClass().getDeclaredField("mBuiltInZoomControls");
+			mWebViewField.setAccessible(true);
+			mWebViewField.set(settings, false);
+		} catch (Exception e) {
+			e.printStackTrace();
+			settings.setBuiltInZoomControls(false);
+		}
 
 		mWebView.setWebViewClient(new WebViewClient());
 		mWebView.setWebChromeClient(new WebChromeClient() {
@@ -259,8 +274,8 @@ public class MainActivity extends Activity {
 		Point size = new Point();
 		disp.getSize(size);
 		Log.d("size", size.x + "," + size.y);
-		cursor = new Cursor(size.x, size.y);
-		mViewBottom.setY(cursor.getDisplaySize().y*2/3);
+		cursor = new Cursor(size.x, size.y, ivMouseCursor);
+		mViewBottom.setY(cursor.getDisplaySize().y * 2 / 3);
 		cursor.setV(Float.parseFloat(pref.getString("velocity", "1.0")));
 		cursor.setSizeRate(Float.parseFloat(pref.getString("size_rate", "1.0")));
 		cursor.setOperationRange(pref.getString("range", "right"));
