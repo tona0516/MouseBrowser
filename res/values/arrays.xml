@@ -22,10 +22,12 @@
     <string-array name="scroll_option">
         <item>右半分(デフォルト)</item>
         <item>左半分</item>
+        <item>下三分の一</item>
     </string-array>
     <string-array name="scroll_string">
         <item>right</item>
         <item>left</item>
+        <item>bottom</item>
     </string-array>
 
 </resources>
