@@ -37,7 +37,7 @@ import android.widget.ToggleButton;
 
 public class MainActivity extends Activity {
 
-	//component
+	// component
 	private WebView mWebView;
 	private ProgressBar mProgressBar;
 	private RelativeLayout mLayout;
