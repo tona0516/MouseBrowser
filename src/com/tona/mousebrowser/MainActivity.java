@@ -4,10 +4,14 @@ import java.lang.reflect.Field;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -24,7 +28,6 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.AlphaAnimation;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -44,11 +47,12 @@ public class MainActivity extends Activity {
 	private ImageView ivMouseCursor;
 	private Button btnClick;
 	private ToggleButton btnEnable;
-	private View mViewLeft, mViewRight, mViewBottom;
+	private View mViewLeft, mViewRight, mViewBottom, mViewPointer;
 
 	private boolean isCursorEnabled = false;
 	private boolean isScrollMode = false;
 	private boolean isNoShowCursorRange = false;
+	private boolean isShowClickLocation = false;
 
 	private SharedPreferences pref;
 	private Cursor cursor;
@@ -75,15 +79,15 @@ public class MainActivity extends Activity {
 		mProgressBar = (ProgressBar) findViewById(R.id.progress_bar);
 		btnEnable = (ToggleButton) findViewById(R.id.btn_enable);
 		btnClick = (Button) findViewById(R.id.btn_click);
+		mViewPointer = new PointerView(this);
+		mLayout.addView(mViewPointer);
 
 		btnEnable.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				mViewPointer.invalidate();
 				if (!isCursorEnabled) {
 					btnClick.setVisibility(View.VISIBLE);
-					AlphaAnimation aa1 = new AlphaAnimation(0, 1);
-					aa1.setDuration(500);
-					btnClick.setAnimation(aa1);
 					mWebView.setOnTouchListener(new myOnSetTouchListener());
 					isCursorEnabled = true;
 					btnEnable.setText("ON");
@@ -91,15 +95,11 @@ public class MainActivity extends Activity {
 					switchViewCursorRange();
 				} else {
 					btnClick.setVisibility(View.INVISIBLE);
-					AlphaAnimation aa2 = new AlphaAnimation(1, 0);
-					aa2.setDuration(500);
-					btnClick.setAnimation(aa2);
 					mWebView.setOnTouchListener(null);
 					isCursorEnabled = false;
 					btnEnable.setText("OFF");
 					mLayout.removeView(ivMouseCursor);
 					switchViewCursorRange();
-
 				}
 			}
 		});
@@ -107,11 +107,12 @@ public class MainActivity extends Activity {
 		btnClick.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				mViewPointer.invalidate();
 				mWebView.setOnTouchListener(null);
-				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_DOWN, cursor.getX(), cursor.getY(), 0);
-				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
-				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 100, MotionEvent.ACTION_UP, cursor.getX(), cursor.getY(), 0);
-				Log.d("dispatch", "" + mWebView.dispatchTouchEvent(ev));
+				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, cursor.getX(), cursor.getY(), 0);
+				mLayout.dispatchTouchEvent(ev);
+				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, cursor.getX(), cursor.getY(), 0);
+				mLayout.dispatchTouchEvent(ev);
 				mWebView.setOnTouchListener(new myOnSetTouchListener());
 			}
 		});
@@ -120,6 +121,8 @@ public class MainActivity extends Activity {
 	@SuppressLint("SetJavaScriptEnabled")
 	private void initWebView() {
 		mWebView = (WebView) findViewById(R.id.webview);
+		mWebView.getSettings().setUseWideViewPort(true);
+		mWebView.getSettings().setLoadWithOverviewMode(true);
 		WebSettings settings = mWebView.getSettings();
 		settings.setJavaScriptEnabled(true);
 		settings.setUseWideViewPort(true);
@@ -230,11 +233,9 @@ public class MainActivity extends Activity {
 					}
 					int[] l = new int[2];
 					int[] k = new int[2];
-					// ivMouseCursor.getLocationOnScreen(l);
-					// ivMouseCursor.getLocationInWindow(k);
-					// Log.d("point", "(" + ivMouseCursor.getX() + "," +
-					// ivMouseCursor.getY() + "),(" + l[0] + "," + l[1] + "),("
-					// + k[0] + "," + k[1] + ")");
+					ivMouseCursor.getLocationOnScreen(l);
+					ivMouseCursor.getLocationInWindow(k);
+					Log.d("point", "(" + (int) cursor.getX() + "," + (int) cursor.getY() + "),(" + l[0] + "," + l[1] + "),(" + k[0] + "," + k[1] + ")");
 					break;
 				case MotionEvent.ACTION_UP :
 					isScrollMode = false;
@@ -303,6 +304,7 @@ public class MainActivity extends Activity {
 		cursor.setSizeRate(Float.parseFloat(pref.getString("size_rate", "1.0")));
 		cursor.setOperationRange(pref.getString("range", "right"));
 		isNoShowCursorRange = pref.getBoolean("view_cursor_range", false);
+		isShowClickLocation = pref.getBoolean("click_location", false);
 	}
 
 	@Override
@@ -347,6 +349,32 @@ public class MainActivity extends Activity {
 			mViewLeft.setVisibility(View.INVISIBLE);
 			mViewRight.setVisibility(View.INVISIBLE);
 			mViewBottom.setVisibility(View.INVISIBLE);
+		}
+	}
+
+	/**
+	 * クリック位置を表示するView
+	 *
+	 * @author meem
+	 *
+	 */
+	private class PointerView extends View {
+		Paint paint;
+
+		public PointerView(Context context) {
+			super(context);
+			paint = new Paint();
+			paint.setColor(Color.RED);
+			paint.setStrokeWidth(3);
+		}
+
+		@Override
+		protected void onDraw(Canvas canvas) {
+			super.onDraw(canvas);
+			if (isCursorEnabled && isShowClickLocation) {
+				canvas.drawLine(0, cursor.getY(), cursor.getDisplaySize().x, cursor.getY(), paint);
+				canvas.drawLine(cursor.getX(), 0, cursor.getX(), cursor.getDisplaySize().y, paint);
+			}
 		}
 	}
 }
