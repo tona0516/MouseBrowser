@@ -28,11 +28,13 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -48,6 +50,7 @@ public class MainActivity extends Activity {
 	private Button btnClick;
 	private ToggleButton btnEnable;
 	private View mViewLeft, mViewRight, mViewBottom, mViewPointer;
+	private EditText editForm;
 
 	private boolean isCursorEnabled = false;
 	private boolean isScrollMode = false;
@@ -80,6 +83,28 @@ public class MainActivity extends Activity {
 		btnEnable = (ToggleButton) findViewById(R.id.btn_enable);
 		btnClick = (Button) findViewById(R.id.btn_click);
 		mViewPointer = new PointerView(this);
+		editForm = (EditText) findViewById(R.id.form);
+		editForm.setOnKeyListener(new View.OnKeyListener() {
+			@Override
+			public boolean onKey(View v, int keyCode, KeyEvent event) {
+				// EnterKeyが押されたかを判定
+				if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
+					// ソフトキーボードを閉じる
+					InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+					inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+					// 検索処理的
+					String str = editForm.getText().toString();
+					if (str.startsWith("http://") || str.startsWith("https://")) {
+						mWebView.loadUrl(editForm.getText().toString());
+					} else {
+						String searchWord = "http://www.google.co.jp/search?q="+str.replaceAll(" ", "+");
+						mWebView.loadUrl(searchWord);
+					}
+					return true;
+				}
+				return false;
+			}
+		});
 		mLayout.addView(mViewPointer);
 
 		btnEnable.setOnClickListener(new OnClickListener() {
@@ -93,6 +118,7 @@ public class MainActivity extends Activity {
 					btnEnable.setText("ON");
 					createCursorImage();
 					switchViewCursorRange();
+					onSearchRequested();
 				} else {
 					btnClick.setVisibility(View.INVISIBLE);
 					mWebView.setOnTouchListener(null);
@@ -139,7 +165,13 @@ public class MainActivity extends Activity {
 			settings.setBuiltInZoomControls(false);
 		}
 
-		mWebView.setWebViewClient(new WebViewClient());
+		mWebView.setWebViewClient(new WebViewClient() {
+			@Override
+			public void onPageStarted(WebView view, String url, Bitmap favicon) {
+				super.onPageStarted(view, url, favicon);
+				editForm.setText(url);
+			}
+		});
 		mWebView.setWebChromeClient(new WebChromeClient() {
 			@Override
 			public void onProgressChanged(WebView view, int newProgress) {

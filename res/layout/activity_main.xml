@@ -9,6 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="URL or search word "
+        android:imeOptions="actionSearch"
         android:singleLine="true" />
 
     <ProgressBar
@@ -26,7 +27,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/progress_bar" >
-     <requestFocus />
+
+        <requestFocus />
     </WebView>
 
     <LinearLayout
