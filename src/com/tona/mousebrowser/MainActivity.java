@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -32,6 +33,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebView.HitTestResult;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
@@ -97,7 +99,7 @@ public class MainActivity extends Activity {
 					if (str.startsWith("http://") || str.startsWith("https://")) {
 						mWebView.loadUrl(editForm.getText().toString());
 					} else {
-						String searchWord = "http://www.google.co.jp/search?q="+str.replaceAll(" ", "+");
+						String searchWord = "http://www.google.co.jp/search?q=" + str.replaceAll(" ", "+");
 						mWebView.loadUrl(searchWord);
 					}
 					return true;
@@ -142,6 +144,20 @@ public class MainActivity extends Activity {
 				mWebView.setOnTouchListener(new myOnSetTouchListener());
 			}
 		});
+
+		btnClick.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View v) {
+				mViewPointer.invalidate();
+				mWebView.setOnTouchListener(null);
+				MotionEvent ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, cursor.getX(), cursor.getY(), 0);
+				mLayout.dispatchTouchEvent(ev);
+				ev = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis()+1000, MotionEvent.ACTION_UP, cursor.getX(), cursor.getY(), 0);
+				mLayout.dispatchTouchEvent(ev);
+				mWebView.setOnTouchListener(new myOnSetTouchListener());
+				return false;
+			}
+		});
 	}
 
 	@SuppressLint("SetJavaScriptEnabled")
@@ -183,6 +199,30 @@ public class MainActivity extends Activity {
 					mProgressBar.setProgress(0);
 					mProgressBar.setVisibility(View.INVISIBLE);
 				}
+			}
+		});
+		mWebView.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View v) {
+				// 長押しした箇所の情報を取得
+				HitTestResult htr = mWebView.getHitTestResult();
+				switch (htr.getType()) {
+					case HitTestResult.IMAGE_TYPE :
+						AlertDialog.Builder alertDlg = new AlertDialog.Builder(MainActivity.this);
+						alertDlg.setTitle("画像押下！");
+						alertDlg.setMessage(htr.getExtra());
+						alertDlg.show();
+						return true;
+					case HitTestResult.SRC_IMAGE_ANCHOR_TYPE :
+						AlertDialog.Builder alertDlg2 = new AlertDialog.Builder(MainActivity.this);
+						alertDlg2.setTitle("画像押下！");
+						alertDlg2.setMessage(htr.getExtra());
+						alertDlg2.show();
+						return true;
+					default :
+						break;
+				}
+				return false;
 			}
 		});
 		Intent intent = getIntent();
@@ -263,11 +303,6 @@ public class MainActivity extends Activity {
 						cursor.setDownY(0);
 						downY = event.getY();
 					}
-					int[] l = new int[2];
-					int[] k = new int[2];
-					ivMouseCursor.getLocationOnScreen(l);
-					ivMouseCursor.getLocationInWindow(k);
-					Log.d("point", "(" + (int) cursor.getX() + "," + (int) cursor.getY() + "),(" + l[0] + "," + l[1] + "),(" + k[0] + "," + k[1] + ")");
 					break;
 				case MotionEvent.ACTION_UP :
 					isScrollMode = false;
@@ -280,6 +315,7 @@ public class MainActivity extends Activity {
 	}
 
 	private boolean isCursorOperationRange(float x, float y) {
+		Log.d("point", "(" + x + "," + y + ")");
 		if (cursor.getOperationRange().equals("right")) {
 			if (x > cursor.getDisplaySize().x / 2 && x < cursor.getDisplaySize().x) {
 				return true;
@@ -291,7 +327,7 @@ public class MainActivity extends Activity {
 			}
 		}
 		if (cursor.getOperationRange().equals("bottom")) {
-			if (y > cursor.getDisplaySize().y * 2 / 3 && y < cursor.getDisplaySize().y) {
+			if (y > cursor.getDisplaySize().y * 2 / 3 - (mProgressBar.getHeight() + editForm.getHeight()) && y < cursor.getDisplaySize().y) {
 				return true;
 			}
 		}
